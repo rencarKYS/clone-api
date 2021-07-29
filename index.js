@@ -1,9 +1,8 @@
 const express = require('express')
 const bodyParser = require("body-parser");
 const cors = require('cors');
-const { response } = require('express');
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 4000
 
 const users = []
 
@@ -172,8 +171,34 @@ app.get('/api/main', (request, response) => {
   response.json(mainData)
 })
 
+
+var client_id = '3AtY4lEtG5n8FcWGjCwO';
+var client_secret = 'bfAXZ9uiSE';
+
+app.get('/search/movie', function (req, res) {
+   var api_url = 'https://openapi.naver.com/v1/search/movie.json?query=' + encodeURI(req.query.query); // json 결과
+  
+   if (req.query.yearfrom && req.query.yearto) {
+    api_url += `&yearfrom=${req.query.yearfrom}&yearto=${req.query.yearto}`
+   }
+
+   var request = require('request');
+   var options = {
+       url: api_url,
+       headers: {'X-Naver-Client-Id':client_id, 'X-Naver-Client-Secret': client_secret}
+    };
+   request.get(options, function (error, response, body) {
+     if (!error && response.statusCode == 200) {
+       res.writeHead(200, {'Content-Type': 'text/json;charset=utf-8'});
+       res.end(body);
+     } else {
+       res.status(response.statusCode).end();
+       console.log('error = ' + response.statusCode);
+     }
+   });
+ });
+
 app.post('/api/join', (req, res) => {
-  console.log(req.body)
   const { email, name, password, passwordCheck, term } = req.body
   if (!email || !name || !password || !passwordCheck || !term) {
     return res.status(400).json({
